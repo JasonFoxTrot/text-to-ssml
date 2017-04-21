@@ -1,7 +1,9 @@
 [package]
 name = "text-to-polly-ssml"
+description = "Converts text to polly SSML. Using a bad format."
 version = "0.1.0"
 authors = ["Eric <ecoan@instructure.com>"]
+license = "MIT"
 
 [dependencies]
 quick-xml = "0.7.0"
