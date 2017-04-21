@@ -1,0 +1,7 @@
+[package]
+name = "text-to-polly-ssml"
+version = "0.1.0"
+authors = ["Eric <ecoan@instructure.com>"]
+
+[dependencies]
+quick-xml = "0.7.0"
