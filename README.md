@@ -5,7 +5,7 @@
 |:--------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Linux   | [![Linux Build Status](https://circleci.com/gh/SecurityInsanity/text-to-polly-ssml/tree/master.svg?style=svg)](https://circleci.com/gh/SecurityInsanity/text-to-polly-ssml/tree/master) |
 
-A Library to turn Text into Valid "Polly SSML". Note I say Polly SSML HEre, since the goal for this is
+A Library to turn Text into Valid "Polly SSML". Note I say Polly SSML Here, since the goal for this is
 to be eventually sent to AWS Polly. AWS Polly does not implement the full SSML v1.1 Spec. It implements
 a subset of it, and as such that is the subset we support. E.g. if you can't do it in polly, you can't do it
 here.
