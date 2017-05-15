@@ -35,7 +35,7 @@ I'm going to switch my language. <lang xml:lang="fr_FR" onlangfailure="processor
 How about a mark? <mark name="markName"> a name </mark>.
 How about my own paragraph? <p> test </p>
 How about a phoneme? <phoneme alphabet="ipa" ph="pɪˈkɑːn"> pecan </phoneme>
-Now lets go to Prosody. <prosody volume="+6dB" rate="medium" pitch="default"> loud </prosody> Now even more <prosody volume="+6db" rate="x-fast" pitch="+4%"> coffee </prosody>
+Now lets go to Prosody. <prosody volume="+6dB"> loud </prosody> Now even more <prosody volume="+6db" rate="x-fast" pitch="+4%"> coffee </prosody>
 Now lets go to a sentence. <s> some words. </s>
 Now lets go to say-as: <say-as interpret-as="spell-out"> abc </say-as>.
 What about a Sub? <sub alias="mercury"> hg </sub>

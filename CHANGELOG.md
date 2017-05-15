@@ -1,4 +1,9 @@
-## 0.1.0 (April 29th, 2017)
+## 0.3.0 (May 15th, 2017)
+
+- Update Dependencies
+- Make Prosody not give you a default value.
+
+## 0.2.0 (April 29th, 2017)
 
 - Give Parsing a Major Overhaul. (No need for spaces yay!)
 - Switch to Nom.

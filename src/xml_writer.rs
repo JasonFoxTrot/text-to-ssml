@@ -451,15 +451,15 @@ impl XmlWriter {
   /// use text_to_polly_ssml::xml_writer::XmlWriter;
   /// let mut new_xml_writer = XmlWriter::new();
   /// assert!(new_xml_writer.is_ok());
-  /// let start_lang_result = new_xml_writer.unwrap().start_ssml_prosody(None, None, None);
-  /// assert!(start_lang_result.is_ok());
+  /// let start_prosody_result = new_xml_writer.unwrap().start_ssml_prosody(Some("+5db".to_owned()), None, None);
+  /// assert!(start_prosody_result.is_ok());
   /// ```
   ///
   /// Generated SSML:
   ///
   /// ```text
   /// <?xml version="1.0"?>
-  /// <prosody volume="default" rate="medium" pitch="default">
+  /// <prosody volume="+6db">
   /// ```
   ///
   /// ---
@@ -471,10 +471,10 @@ impl XmlWriter {
   /// use text_to_polly_ssml::ssml_constants::ProsodyRate;
   /// let mut new_xml_writer = XmlWriter::new();
   /// assert!(new_xml_writer.is_ok());
-  /// let start_lang_result = new_xml_writer.unwrap()
+  /// let start_prosody_result = new_xml_writer.unwrap()
   ///   .start_ssml_prosody(Some("+6dB".to_owned()), Some(ProsodyRate::XFast),
   ///    Some("+100%".to_owned()));
-  /// assert!(start_lang_result.is_ok());
+  /// assert!(start_prosody_result.is_ok());
   /// ```
   ///
   /// Generated SSML:
@@ -486,9 +486,18 @@ impl XmlWriter {
   pub fn start_ssml_prosody(&mut self, volume: Option<String>, rate: Option<ProsodyRate>,
     pitch: Option<String>) -> Result<usize, Error> {
     let mut elem = BytesStart::owned(b"prosody".to_vec(), "prosody".len());
-    elem.push_attribute(("volume", &*volume.unwrap_or("default".to_owned())));
-    elem.push_attribute(("rate", &*format!("{}", rate.unwrap_or(ProsodyRate::Medium))));
-    elem.push_attribute(("pitch", &*pitch.unwrap_or("default".to_owned())));
+    if volume.is_none() && rate.is_none() && pitch.is_none() {
+      return Err(Error::from("Prosody Tag was supplied no values."))
+    }
+    if volume.is_some() {
+      elem.push_attribute(("volume", &*volume.unwrap()));
+    }
+    if rate.is_some() {
+      elem.push_attribute(("rate", &*format!("{}", rate.unwrap())));
+    }
+    if pitch.is_some() {
+      elem.push_attribute(("pitch", &*pitch.unwrap()));
+    }
     self.writer.write_event(Event::Start(elem))
   }
 
