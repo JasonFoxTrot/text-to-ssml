@@ -27,11 +27,12 @@ Now lets go to a sentence. ${s} some words. ${/s}
 Now lets go to say-as: ${say-as|interpret-as=spell-out} abc ${/say-as}.
 What about a Sub? ${sub|alias=mercury} hg ${/sub}
 What aboue a word role? ${w|role=amazon:VB} test ${/w}
-What about whisper? ${amazon:effect|name=whisper} this is a secret to everyone ${/amazon:effect}"#.to_owned());
+What about whisper? ${amazon:effect|name=whisper} this is a secret to everyone ${/amazon:effect}
+What about some DRC? ${amazon:effect|name=drc}This text has a higher pitch than normal.${/amazon:effect}"#.to_owned());
   assert!(result.is_ok());
   assert_eq!(result.unwrap(), r#"<?xml version="1.0"?><speak xml:lang="en-US" onlangfailure="processorchoice" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Hello, My name is justin.
-I'm going to stop talking for a bit. <break/> now even longer... <break strength="strong" time="4s"/>
-I'm going to switch my language. <lang xml:lang="fr_FR" onlangfailure="processorchoice"> hey </lang>, now with an optional fallback: <lang xml:lang="fr_FR" onlangfailure="changevoice"> </lang>
+I&apos;m going to stop talking for a bit. <break/> now even longer... <break strength="strong" time="4s"/>
+I&apos;m going to switch my language. <lang xml:lang="fr_FR" onlangfailure="processorchoice"> hey </lang>, now with an optional fallback: <lang xml:lang="fr_FR" onlangfailure="changevoice"> </lang>
 How about a mark? <mark name="markName"> a name </mark>.
 How about my own paragraph? <p> test </p>
 How about a phoneme? <phoneme alphabet="ipa" ph="pɪˈkɑːn"> pecan </phoneme>
@@ -40,5 +41,6 @@ Now lets go to a sentence. <s> some words. </s>
 Now lets go to say-as: <say-as interpret-as="spell-out"> abc </say-as>.
 What about a Sub? <sub alias="mercury"> hg </sub>
 What aboue a word role? <w role="amazon:VB"> test </w>
-What about whisper? <amazon:effect name="whispered"> this is a secret to everyone </amazon:effect></speak>"#);
+What about whisper? <amazon:effect name="whispered"> this is a secret to everyone </amazon:effect>
+What about some DRC? <amazon:effect name="drc">This text has a higher pitch than normal.</amazon:effect></speak>"#);
 }

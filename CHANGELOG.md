@@ -1,3 +1,8 @@
+## 0.3.1 (September 9th, 2017)
+
+- Added support for the DRC amazon:effect.
+- Updated Dependencies. (Includes Escaping XML Values).
+
 ## 0.3.0 (May 15th, 2017)
 
 - Update Dependencies

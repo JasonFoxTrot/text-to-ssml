@@ -214,12 +214,14 @@ impl FromStr for WordRole {
 /// [HERE](http://docs.aws.amazon.com/polly/latest/dg/supported-ssml.html).
 pub enum AmazonEffect {
   Whispered,
+  Drc,
 }
 
 impl fmt::Display for AmazonEffect {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match self {
       &AmazonEffect::Whispered => write!(f, "whispered"),
+      &AmazonEffect::Drc => write!(f, "drc"),
     }
   }
 }
@@ -230,6 +232,7 @@ impl FromStr for AmazonEffect {
     fn from_str(s: &str) -> Result<AmazonEffect, ()> {
       match &*s.to_lowercase() {
         "whispered" | "whisper" => Ok(AmazonEffect::Whispered),
+        "drc" => Ok(AmazonEffect::Drc),
         _ => Err(()),
       }
     }
