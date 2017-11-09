@@ -1,7 +1,7 @@
 [package]
 name = "text-to-polly-ssml"
 description = "Converts text to polly SSML. Using a bad format."
-version = "0.3.1"
+version = "0.3.2"
 authors = ["Eric <ecoan@instructure.com>"]
 license = "MIT"
 homepage = "https://github.com/SecurityInsanity/text-to-polly-ssml"

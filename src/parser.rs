@@ -252,13 +252,18 @@ pub fn parse_as_ssml(data: String) -> Result<String> {
           }
         },
         PossibleOpenTags::AmazonEffect => {
-          if !start_tag.params.contains_key("name") {
+          if !start_tag.params.contains_key("name") && !start_tag.params.contains_key("vocal-tract-length") {
             return;
           }
-          let potentially_parsed = start_tag.params.get("name").unwrap()
-            .parse::<AmazonEffect>();
-          if potentially_parsed.is_ok() {
-            let _ = xml_writer.start_ssml_amazon_effect(potentially_parsed.unwrap());
+          if start_tag.params.contains_key("name") {
+            let potentially_parsed = start_tag.params.get("name").unwrap()
+              .parse::<AmazonEffect>();
+            if potentially_parsed.is_ok() {
+              let _ = xml_writer.start_ssml_amazon_effect(potentially_parsed.unwrap());
+            }
+          } else {
+            let factor = start_tag.params.get("vocal-tract-length").unwrap();
+            let _ = xml_writer.start_ssml_vocal_tract_length(factor.to_owned());
           }
         }
       };

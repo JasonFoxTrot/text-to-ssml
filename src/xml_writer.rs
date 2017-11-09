@@ -779,6 +779,35 @@ impl XmlWriter {
     self.writer.write_event(Event::Start(elem))
   }
 
+  /// Starts an SSML vocal tract tag. These tags are unique to AWS Polly. As such
+  /// the only place they are documented is inside the AWS Docs themsleves which are:
+  /// [HERE](http://docs.aws.amazon.com/polly/latest/dg/supported-ssml.html).
+  ///
+  /// # Examples
+  ///
+  /// Rust Code:
+  ///
+  /// ```rust
+  /// use text_to_polly_ssml::xml_writer::XmlWriter;
+  /// let mut new_xml_writer = XmlWriter::new();
+  /// assert!(new_xml_writer.is_ok());
+  /// let start_amazon_effect_result = new_xml_writer.unwrap()
+  ///   .start_ssml_vocal_tract_length("+10%".to_owned());
+  /// assert!(start_amazon_effect_result.is_ok());
+  /// ```
+  ///
+  /// Generated SSML:
+  ///
+  /// ```text
+  /// <?xml version="1.0"?>
+  /// <amazon:effect vocal-tract-length="+10%">
+  /// ```
+  pub fn start_ssml_vocal_tract_length(&mut self, factor: String) -> Result<usize, Error> {
+    let mut elem = BytesStart::owned(b"amazon:effect".to_vec(), "amazon:effect".len());
+    elem.push_attribute(("vocal-tract-length", &*format!("{}", factor)));
+    self.writer.write_event(Event::Start(elem))
+  }
+
   /// Ends an SSML <amazon:effect> tag.
   ///
   /// # Examples

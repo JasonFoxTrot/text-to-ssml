@@ -1,3 +1,7 @@
+## 0.3.2 (November 9th, 2017)
+
+- Added support for the `vocal-tract-length` amazon:effect.
+
 ## 0.3.1 (September 9th, 2017)
 
 - Added support for the DRC amazon:effect.

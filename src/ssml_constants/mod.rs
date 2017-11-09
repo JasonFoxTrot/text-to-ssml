@@ -209,7 +209,7 @@ impl FromStr for WordRole {
     }
 }
 
-/// Represents all possible AWS Effects that AWS Polly Supports.
+/// Represents all possible AWS Effects that AWS Polly Supports THAT DO NOT HAVE VALUES.
 /// The full documentation on all possible amazon effects are in the AWS docs:
 /// [HERE](http://docs.aws.amazon.com/polly/latest/dg/supported-ssml.html).
 pub enum AmazonEffect {
