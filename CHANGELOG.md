@@ -1,3 +1,11 @@
+## 0.3.3 (December 8th, 2018)
+
+- Updated to Rust 2018
+- Updated deps where possible
+- Added support for: `<amazon:effect phonation>`
+- Added support for: `<amazon:auto-breaths>`.
+- Added support for: `<amazon:breath>`.
+
 ## 0.3.2 (November 9th, 2017)
 
 - Added support for the `vocal-tract-length` amazon:effect.

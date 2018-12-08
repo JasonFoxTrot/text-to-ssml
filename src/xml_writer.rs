@@ -1,11 +1,13 @@
 //! Controls writing of the XML part of SSML. This contains all low level bindings in a sense
 //! to the tags. You should probably never use this directly.
 
-use quick_xml::errors::Error;
-use quick_xml::writer::Writer;
-use quick_xml::events::{ Event, BytesDecl, BytesEnd, BytesStart, BytesText };
-use ::ssml_constants::*;
+use failure::{Error, err_msg};
+use quick_xml::Writer;
+use quick_xml::events::{Event, BytesDecl, BytesEnd, BytesStart, BytesText};
+
 use std::io::Cursor;
+
+use crate::ssml_constants::*;
 
 /// An XML Writer. Used for manual manipulation of the SSML Output (which uses XML).
 ///
@@ -42,7 +44,7 @@ impl XmlWriter {
   /// ```
   pub fn new() -> Result<XmlWriter, Error> {
     let mut writer = Writer::new(Cursor::new(Vec::new()));
-    try!(writer.write_event(Event::Decl(BytesDecl::new(b"1.0", None, None))));
+    writer.write_event(Event::Decl(BytesDecl::new(b"1.0", None, None)))?;
     Ok(XmlWriter {
       writer: writer,
     })
@@ -84,13 +86,12 @@ impl XmlWriter {
   /// ```
   pub fn start_ssml_speak(&mut self, lang: Option<String>, onlangfailure: Option<String>)
     -> Result<usize, Error> {
-
     let mut elem = BytesStart::owned(b"speak".to_vec(), "speak".len());
     elem.push_attribute(("xml:lang", &*lang.unwrap_or("en-US".to_owned())));
     elem.push_attribute(("onlangfailure", &*onlangfailure.unwrap_or("processorchoice".to_owned())));
     elem.push_attribute(("xmlns", "http://www.w3.org/2001/10/synthesis"));
     elem.push_attribute(("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"));
-    self.writer.write_event(Event::Start(elem))
+    Ok(self.writer.write_event(Event::Start(elem))?)
   }
 
   /// Ends an SSML <speak> tag. For AWS Polly this should be the root tag, and you
@@ -115,7 +116,7 @@ impl XmlWriter {
   /// </speak>
   /// ```
   pub fn end_ssml_speak(&mut self) -> Result<usize, Error> {
-    self.writer.write_event(Event::End(BytesEnd::borrowed(b"speak")))
+    Ok(self.writer.write_event(Event::End(BytesEnd::borrowed(b"speak")))?)
   }
 
   /// Creates an SSML <break> tag. AWS Polly follows the W3C SSMLv1.1 standard for
@@ -180,7 +181,7 @@ impl XmlWriter {
       elem.push_attribute(("time", &*format!("{}", time.unwrap())));
     }
 
-    self.writer.write_event(Event::Empty(elem))
+    Ok(self.writer.write_event(Event::Empty(elem))?)
   }
 
 
@@ -236,7 +237,7 @@ impl XmlWriter {
     let mut elem = BytesStart::owned(b"lang".to_vec(), "lang".len());
     elem.push_attribute(("xml:lang", &*lang));
     elem.push_attribute(("onlangfailure", &*onlangfailure.unwrap_or("processorchoice".to_owned())));
-    self.writer.write_event(Event::Start(elem))
+    Ok(self.writer.write_event(Event::Start(elem))?)
   }
 
   /// Ends an SSML <lang> tag.
@@ -260,7 +261,7 @@ impl XmlWriter {
   /// </lang>
   /// ```
   pub fn end_ssml_lang(&mut self) -> Result<usize, Error> {
-    self.writer.write_event(Event::End(BytesEnd::borrowed(b"lang")))
+    Ok(self.writer.write_event(Event::End(BytesEnd::borrowed(b"lang")))?)
   }
 
   /// Starts an SSML Mark tag. Although this will make no difference in the voice
@@ -293,7 +294,7 @@ impl XmlWriter {
   pub fn start_ssml_mark(&mut self, name: String) -> Result<usize, Error> {
     let mut elem = BytesStart::owned(b"mark".to_vec(), "mark".len());
     elem.push_attribute(("name", &*name));
-    self.writer.write_event(Event::Start(elem))
+    Ok(self.writer.write_event(Event::Start(elem))?)
   }
 
   /// Ends an SSML <mark> tag.
@@ -317,7 +318,7 @@ impl XmlWriter {
   /// </mark>
   /// ```
   pub fn end_ssml_mark(&mut self) -> Result<usize, Error> {
-    self.writer.write_event(Event::End(BytesEnd::borrowed(b"mark")))
+    Ok(self.writer.write_event(Event::End(BytesEnd::borrowed(b"mark")))?)
   }
 
   /// Starts an SSML Paragraph Tag. The Paragraph Tag is useful for breaking
@@ -347,7 +348,7 @@ impl XmlWriter {
   /// <p>
   /// ```
   pub fn start_ssml_paragraph(&mut self) -> Result<usize, Error> {
-    self.writer.write_event(Event::Start(BytesStart::owned(b"p".to_vec(), "p".len())))
+    Ok(self.writer.write_event(Event::Start(BytesStart::owned(b"p".to_vec(), "p".len())))?)
   }
 
   /// Ends an SSML <p> tag.
@@ -371,7 +372,7 @@ impl XmlWriter {
   /// </p>
   /// ```
   pub fn end_ssml_paragraph(&mut self) -> Result<usize, Error> {
-    self.writer.write_event(Event::End(BytesEnd::borrowed(b"p")))
+    Ok(self.writer.write_event(Event::End(BytesEnd::borrowed(b"p")))?)
   }
 
   /// Starts an SSML Phoneme Tag. The Phoneme Tag is useful for custom pronunciation for words.
@@ -410,7 +411,7 @@ impl XmlWriter {
     let mut elem = BytesStart::owned(b"phoneme".to_vec(), "phoneme".len());
     elem.push_attribute(("alphabet", &*format!("{}", alphabet)));
     elem.push_attribute(("ph", &*ph));
-    self.writer.write_event(Event::Start(elem))
+    Ok(self.writer.write_event(Event::Start(elem))?)
   }
 
   /// Ends an SSML <phoneme> tag.
@@ -434,7 +435,7 @@ impl XmlWriter {
   /// </phoneme>
   /// ```
   pub fn end_ssml_phoneme(&mut self) -> Result<usize, Error> {
-    self.writer.write_event(Event::End(BytesEnd::borrowed(b"phoneme")))
+    Ok(self.writer.write_event(Event::End(BytesEnd::borrowed(b"phoneme")))?)
   }
 
   /// Starts an SSML Prosody Tag. The prosody tag seems to be the one that derives the most
@@ -487,7 +488,7 @@ impl XmlWriter {
     pitch: Option<String>) -> Result<usize, Error> {
     let mut elem = BytesStart::owned(b"prosody".to_vec(), "prosody".len());
     if volume.is_none() && rate.is_none() && pitch.is_none() {
-      return Err(Error::from("Prosody Tag was supplied no values."))
+      return Err(err_msg("Prosody Tag was supplied no values."))
     }
     if volume.is_some() {
       elem.push_attribute(("volume", &*volume.unwrap()));
@@ -498,7 +499,7 @@ impl XmlWriter {
     if pitch.is_some() {
       elem.push_attribute(("pitch", &*pitch.unwrap()));
     }
-    self.writer.write_event(Event::Start(elem))
+    Ok(self.writer.write_event(Event::Start(elem))?)
   }
 
   /// Ends an SSML <prosody> tag.
@@ -522,7 +523,7 @@ impl XmlWriter {
   /// </prosody>
   /// ```
   pub fn end_ssml_prosody(&mut self) -> Result<usize, Error> {
-    self.writer.write_event(Event::End(BytesEnd::borrowed(b"prosody")))
+    Ok(self.writer.write_event(Event::End(BytesEnd::borrowed(b"prosody")))?)
   }
 
   /// Starts an SSML Sentence Tag. The Sentence Tag is useful for breaking
@@ -552,7 +553,7 @@ impl XmlWriter {
   /// <s>
   /// ```
   pub fn start_ssml_sentence(&mut self) -> Result<usize, Error> {
-    self.writer.write_event(Event::Start(BytesStart::owned(b"s".to_vec(), "s".len())))
+    Ok(self.writer.write_event(Event::Start(BytesStart::owned(b"s".to_vec(), "s".len())))?)
   }
 
   /// Ends an SSML <s> tag.
@@ -576,7 +577,7 @@ impl XmlWriter {
   /// </s>
   /// ```
   pub fn end_ssml_sentence(&mut self) -> Result<usize, Error> {
-    self.writer.write_event(Event::End(BytesEnd::borrowed(b"s")))
+    Ok(self.writer.write_event(Event::End(BytesEnd::borrowed(b"s")))?)
   }
 
   /// Starts an SSML say-as Tag. The say-as tag is used for determing how a body of text
@@ -612,7 +613,7 @@ impl XmlWriter {
   pub fn start_ssml_say_as(&mut self, interpret_as: String) -> Result<usize, Error> {
     let mut elem = BytesStart::owned(b"say-as".to_vec(), "say-as".len());
     elem.push_attribute(("interpret-as", &*interpret_as));
-    self.writer.write_event(Event::Start(elem))
+    Ok(self.writer.write_event(Event::Start(elem))?)
   }
 
   /// Ends an SSML <say-as> tag.
@@ -636,7 +637,7 @@ impl XmlWriter {
   /// </say-as>
   /// ```
   pub fn end_ssml_say_as(&mut self) -> Result<usize, Error> {
-    self.writer.write_event(Event::End(BytesEnd::borrowed(b"say-as")))
+    Ok(self.writer.write_event(Event::End(BytesEnd::borrowed(b"say-as")))?)
   }
 
   /// Starts an SSML sub Tag. The sub tag is used for a substitution of a word.
@@ -668,7 +669,7 @@ impl XmlWriter {
   pub fn start_ssml_sub(&mut self, alias: String) -> Result<usize, Error> {
     let mut elem = BytesStart::owned(b"sub".to_vec(), "sub".len());
     elem.push_attribute(("alias", &*alias));
-    self.writer.write_event(Event::Start(elem))
+    Ok(self.writer.write_event(Event::Start(elem))?)
   }
 
   /// Ends an SSML <sub> tag.
@@ -692,7 +693,7 @@ impl XmlWriter {
   /// </sub>
   /// ```
   pub fn end_ssml_sub(&mut self) -> Result<usize, Error> {
-    self.writer.write_event(Event::End(BytesEnd::borrowed(b"sub")))
+    Ok(self.writer.write_event(Event::End(BytesEnd::borrowed(b"sub")))?)
   }
 
   /// Starts an SSML Word/Token tag. The Word/Token tag for AWS Polly also deviates pretty
@@ -722,7 +723,7 @@ impl XmlWriter {
   pub fn start_ssml_w(&mut self, role: WordRole) -> Result<usize, Error> {
     let mut elem = BytesStart::owned(b"w".to_vec(), "w".len());
     elem.push_attribute(("role", &*format!("{}", role)));
-    self.writer.write_event(Event::Start(elem))
+    Ok(self.writer.write_event(Event::Start(elem))?)
   }
 
   /// Ends an SSML <w> tag.
@@ -746,7 +747,7 @@ impl XmlWriter {
   /// </w>
   /// ```
   pub fn end_ssml_w(&mut self) -> Result<usize, Error> {
-    self.writer.write_event(Event::End(BytesEnd::borrowed(b"w")))
+    Ok(self.writer.write_event(Event::End(BytesEnd::borrowed(b"w")))?)
   }
 
   /// Starts an SSML amazon effect tag. These tags are unique to AWS Polly. As such
@@ -776,7 +777,31 @@ impl XmlWriter {
   pub fn start_ssml_amazon_effect(&mut self, name: AmazonEffect) -> Result<usize, Error> {
     let mut elem = BytesStart::owned(b"amazon:effect".to_vec(), "amazon:effect".len());
     elem.push_attribute(("name", &*format!("{}", name)));
-    self.writer.write_event(Event::Start(elem))
+    Ok(self.writer.write_event(Event::Start(elem))?)
+  }
+
+  /// Ends an SSML <amazon:effect> tag.
+  ///
+  /// # Examples
+  ///
+  /// Rust Code:
+  ///
+  /// ```rust
+  /// use text_to_polly_ssml::xml_writer::XmlWriter;
+  /// let mut new_xml_writer = XmlWriter::new();
+  /// assert!(new_xml_writer.is_ok());
+  /// let end_amazon_effect_result = new_xml_writer.unwrap().end_ssml_amazon_effect();
+  /// assert!(end_amazon_effect_result.is_ok());
+  /// ```
+  ///
+  /// Generated SSML:
+  ///
+  /// ```text
+  /// <?xml version="1.0"?>
+  /// </amazon:effect>
+  /// ```
+  pub fn end_ssml_amazon_effect(&mut self) -> Result<usize, Error> {
+    Ok(self.writer.write_event(Event::End(BytesEnd::borrowed(b"amazon:effect")))?)
   }
 
   /// Starts an SSML vocal tract tag. These tags are unique to AWS Polly. As such
@@ -805,10 +830,78 @@ impl XmlWriter {
   pub fn start_ssml_vocal_tract_length(&mut self, factor: String) -> Result<usize, Error> {
     let mut elem = BytesStart::owned(b"amazon:effect".to_vec(), "amazon:effect".len());
     elem.push_attribute(("vocal-tract-length", &*format!("{}", factor)));
-    self.writer.write_event(Event::Start(elem))
+    Ok(self.writer.write_event(Event::Start(elem))?)
   }
 
-  /// Ends an SSML <amazon:effect> tag.
+  /// Starts an SSML phonation tag. These tags are unique to AWS Polly. As such
+  /// the only place they are documented is inside the AWS Docs themsleves which are:
+  /// [HERE](http://docs.aws.amazon.com/polly/latest/dg/supported-ssml.html).
+  ///
+  /// # Examples
+  ///
+  /// Rust Code:
+  ///
+  /// ```rust
+  /// use text_to_polly_ssml::xml_writer::XmlWriter;
+  /// use text_to_polly_ssml::ssml_constants::PhonationVolume;
+  /// let mut new_xml_writer = XmlWriter::new();
+  /// assert!(new_xml_writer.is_ok());
+  /// let start_amazon_phonation_result = new_xml_writer.unwrap()
+  ///   .start_ssml_phonation(PhonationVolume::Soft);
+  /// assert!(start_amazon_phonation_result.is_ok());
+  /// ```
+  ///
+  /// Generated SSML:
+  ///
+  /// ```text
+  /// <?xml version="1.0"?>
+  /// <amazon:effect phonation="soft">
+  /// ```
+  pub fn start_ssml_phonation(&mut self, volume: PhonationVolume) -> Result<usize, Error> {
+    let mut elem = BytesStart::owned(b"amazon:effect".to_vec(), "amazon:effect".len());
+    elem.push_attribute(("phonation", &*format!("{}", volume)));
+    Ok(self.writer.write_event(Event::Start(elem))?)
+  }
+
+  /// Starts an SSML <amazon:auto-breaths> tag.
+  ///
+  /// # Examples
+  ///
+  /// Rust Code:
+  ///
+  /// ```rust
+  /// use text_to_polly_ssml::xml_writer::XmlWriter;
+  /// use text_to_polly_ssml::ssml_constants::*;
+  /// let mut new_xml_writer = XmlWriter::new();
+  /// assert!(new_xml_writer.is_ok());
+  /// let start_amazon_auto_breaths_result = new_xml_writer.unwrap().start_ssml_auto_breaths(
+  ///   BreathVolumes::Def,
+  ///   AutoBreathFrequency::Def,
+  ///   BreathDuration::Def,
+  /// );
+  /// assert!(start_amazon_auto_breaths_result.is_ok());
+  /// ```
+  ///
+  /// Generated SSML:
+  ///
+  /// ```text
+  /// <?xml version="1.0"?>
+  /// <amazon:auto-breaths volume="default" frequency="default" duration="default">
+  /// ```
+  pub fn start_ssml_auto_breaths(
+    &mut self,
+    volume: BreathVolumes,
+    frequency: AutoBreathFrequency,
+    duration: BreathDuration
+  ) -> Result<usize, Error> {
+    let mut elem = BytesStart::owned(b"amazon:auto-breaths".to_vec(), "amazon:auto-breaths".len());
+    elem.push_attribute(("volume", &*format!("{}", volume)));
+    elem.push_attribute(("frequency", &*format!("{}", frequency)));
+    elem.push_attribute(("duration", &*format!("{}", duration)));
+    Ok(self.writer.write_event(Event::Start(elem))?)
+  }
+
+  /// Ends an SSML <amazon:auto-breaths> tag.
   ///
   /// # Examples
   ///
@@ -818,23 +911,62 @@ impl XmlWriter {
   /// use text_to_polly_ssml::xml_writer::XmlWriter;
   /// let mut new_xml_writer = XmlWriter::new();
   /// assert!(new_xml_writer.is_ok());
-  /// let end_amazon_effect_result = new_xml_writer.unwrap().end_ssml_amazon_effect();
-  /// assert!(end_amazon_effect_result.is_ok());
+  /// let end_amazon_auto_breaths_result = new_xml_writer.unwrap().end_ssml_amazon_auto_breaths();
+  /// assert!(end_amazon_auto_breaths_result.is_ok());
   /// ```
   ///
   /// Generated SSML:
   ///
   /// ```text
   /// <?xml version="1.0"?>
-  /// </amazon:effect>
+  /// </amazon:auto-breaths>
   /// ```
-  pub fn end_ssml_amazon_effect(&mut self) -> Result<usize, Error> {
-    self.writer.write_event(Event::End(BytesEnd::borrowed(b"amazon:effect")))
+  pub fn end_ssml_amazon_auto_breaths(&mut self) -> Result<usize, Error> {
+    Ok(self.writer.write_event(Event::End(BytesEnd::borrowed(b"amazon:auto-breaths")))?)
+  }
+
+
+  /// Starts an SSML <amazon:breath> tag.
+  ///
+  /// # Examples
+  ///
+  /// Rust Code:
+  ///
+  /// ```rust
+  /// use text_to_polly_ssml::xml_writer::XmlWriter;
+  /// use text_to_polly_ssml::ssml_constants::*;
+  /// let mut new_xml_writer = XmlWriter::new();
+  /// assert!(new_xml_writer.is_ok());
+  /// let start_amazon_breath_result = new_xml_writer.unwrap().write_amazon_breath(
+  ///   BreathVolumes::Def,
+  ///   BreathDuration::Def,
+  /// );
+  /// assert!(start_amazon_breath_result.is_ok());
+  /// ```
+  ///
+  /// Generated SSML:
+  ///
+  /// ```text
+  /// <?xml version="1.0"?>
+  /// <amazon:breath volume="default" duration="default" />
+  /// ```
+  pub fn write_amazon_breath(
+    &mut self,
+    volume: BreathVolumes,
+    duration: BreathDuration
+  ) -> Result<usize, Error> {
+    let mut elem = BytesStart::owned(b"amazon:breath".to_vec(), "amazon:breath".len());
+    elem.push_attribute(("volume", &*format!("{}", volume)));
+    elem.push_attribute(("duration", &*format!("{}", duration)));
+
+    Ok(self.writer.write_event(Event::Empty(elem))?)
   }
 
   /// Writes some raw text to the XML Document. Should only be used inbetween <p> tags.
   pub fn write_text(&mut self, text: &str) -> Result<usize, Error> {
-    self.writer.write_event(Event::Text(BytesText::borrowed(text.as_bytes())))
+    Ok(self.writer.write_event(
+      Event::Text(BytesText::from_plain_str(text))
+    )?)
   }
 
   /// Renders the XML document in it's current state. This expects the document

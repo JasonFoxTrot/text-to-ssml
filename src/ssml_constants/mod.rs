@@ -238,6 +238,155 @@ impl FromStr for AmazonEffect {
     }
 }
 
+/// Possible volumes of breaths for <amazon:breath>, and <amazon:auto-breaths>.
+/// The full documentation on what this does, and it's values are in AWS Docs:
+/// [HERE](http://docs.aws.amazon.com/polly/latest/dg/supported-ssml.html).
+pub enum BreathVolumes {
+  Def,
+  XSoft,
+  Soft,
+  Medium,
+  Loud,
+  XLoud,
+}
+
+impl fmt::Display for BreathVolumes {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    match self {
+      &BreathVolumes::Def => write!(f, "default"),
+      &BreathVolumes::XSoft => write!(f, "x-soft"),
+      &BreathVolumes::Soft => write!(f, "soft"),
+      &BreathVolumes::Medium => write!(f, "medium"),
+      &BreathVolumes::Loud => write!(f, "loud"),
+      &BreathVolumes::XLoud => write!(f, "x-loud"),
+    }
+  }
+}
+
+impl FromStr for BreathVolumes {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<BreathVolumes, ()> {
+      match &*s.to_lowercase() {
+        "default" | "" => Ok(BreathVolumes::Def),
+        "x-soft" => Ok(BreathVolumes::XSoft),
+        "soft" => Ok(BreathVolumes::Soft),
+        "medium" => Ok(BreathVolumes::Medium),
+        "loud" => Ok(BreathVolumes::Loud),
+        "x-loud" => Ok(BreathVolumes::XLoud),
+        _ => Err(()),
+      }
+    }
+}
+
+/// Possible duration values of breaths for <amazon:breath>, and <amazon:auto-breaths>.
+/// The full documentation on what this does, and it's values are in AWS Docs:
+/// [HERE](http://docs.aws.amazon.com/polly/latest/dg/supported-ssml.html).
+pub enum BreathDuration {
+  Def,
+  XShort,
+  Short,
+  Medium,
+  Long,
+  XLong,
+}
+
+impl fmt::Display for BreathDuration {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    match self {
+      &BreathDuration::Def => write!(f, "default"),
+      &BreathDuration::XShort => write!(f, "x-short"),
+      &BreathDuration::Short => write!(f, "short"),
+      &BreathDuration::Medium => write!(f, "medium"),
+      &BreathDuration::Long => write!(f, "long"),
+      &BreathDuration::XLong => write!(f, "x-long"),
+    }
+  }
+}
+
+impl FromStr for BreathDuration {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<BreathDuration, ()> {
+      match &*s.to_lowercase() {
+        "default" | "" => Ok(BreathDuration::Def),
+        "x-short" => Ok(BreathDuration::XShort),
+        "short" => Ok(BreathDuration::Short),
+        "medium" => Ok(BreathDuration::Medium),
+        "long" => Ok(BreathDuration::Long),
+        "x-long" => Ok(BreathDuration::XLong),
+        _ => Err(()),
+      }
+    }
+}
+
+/// Possible frequency values of breaths for <amazon:auto-breaths>.
+/// The full documentation on what this does, and it's values are in AWS Docs:
+/// [HERE](http://docs.aws.amazon.com/polly/latest/dg/supported-ssml.html).
+pub enum AutoBreathFrequency {
+  Def,
+  XLow,
+  Low,
+  Medium,
+  High,
+  XHigh,
+}
+
+impl fmt::Display for AutoBreathFrequency {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    match self {
+      &AutoBreathFrequency::Def => write!(f, "default"),
+      &AutoBreathFrequency::XLow => write!(f, "x-low"),
+      &AutoBreathFrequency::Low => write!(f, "low"),
+      &AutoBreathFrequency::Medium => write!(f, "medium"),
+      &AutoBreathFrequency::High => write!(f, "high"),
+      &AutoBreathFrequency::XHigh => write!(f, "x-high"),
+    }
+  }
+}
+
+impl FromStr for AutoBreathFrequency {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<AutoBreathFrequency, ()> {
+      match &*s.to_lowercase() {
+        "default" | "" => Ok(AutoBreathFrequency::Def),
+        "x-low" => Ok(AutoBreathFrequency::XLow),
+        "low" => Ok(AutoBreathFrequency::Low),
+        "medium" => Ok(AutoBreathFrequency::Medium),
+        "high" => Ok(AutoBreathFrequency::High),
+        "x-high" => Ok(AutoBreathFrequency::XHigh),
+        _ => Err(()),
+      }
+    }
+}
+
+/// Represents all possible values for the `amazon:effect phonation` key.
+/// The full documentation on the supported values are in the AWS docs:
+/// [HERE](http://docs.aws.amazon.com/polly/latest/dg/supported-ssml.html)
+pub enum PhonationVolume {
+  Soft,
+}
+
+impl fmt::Display for PhonationVolume {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    match self {
+      &PhonationVolume::Soft => write!(f, "soft")
+    }
+  }
+}
+
+impl FromStr for PhonationVolume {
+  type Err = ();
+
+    fn from_str(s: &str) -> Result<PhonationVolume, ()> {
+      match &*s.to_lowercase() {
+        "soft" => Ok(PhonationVolume::Soft),
+        _ => Err(()),
+      }
+    }
+}
+
 pub enum PossibleClosingTags {
   LangTag,
   Mark,
@@ -248,7 +397,8 @@ pub enum PossibleClosingTags {
   SayAs,
   Sub,
   Word,
-  AmazonEffect
+  AmazonEffect,
+  AmazonAutoBreaths,
 }
 
 impl FromStr for PossibleClosingTags {
@@ -266,6 +416,7 @@ impl FromStr for PossibleClosingTags {
         "sub" => Ok(PossibleClosingTags::Sub),
         "w" => Ok(PossibleClosingTags::Word),
         "amazon:effect" => Ok(PossibleClosingTags::AmazonEffect),
+        "amazon:auto-breaths" => Ok(PossibleClosingTags::AmazonAutoBreaths),
         _ => Err(()),
       }
     }
@@ -282,7 +433,9 @@ pub enum PossibleOpenTags {
   SayAs,
   Sub,
   Word,
-  AmazonEffect
+  AmazonEffect,
+  AmazonAutoBreaths,
+  AmazonBreath,
 }
 
 impl FromStr for PossibleOpenTags {
@@ -301,6 +454,8 @@ impl FromStr for PossibleOpenTags {
         "sub" => Ok(PossibleOpenTags::Sub),
         "w" => Ok(PossibleOpenTags::Word),
         "amazon:effect" => Ok(PossibleOpenTags::AmazonEffect),
+        "amazon:auto-breaths" => Ok(PossibleOpenTags::AmazonAutoBreaths),
+        "amazon:breath" => Ok(PossibleOpenTags::AmazonBreath),
         _ => Err(()),
       }
     }

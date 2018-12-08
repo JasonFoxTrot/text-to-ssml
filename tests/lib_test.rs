@@ -29,7 +29,12 @@ What about a Sub? ${sub|alias=mercury} hg ${/sub}
 What aboue a word role? ${w|role=amazon:VB} test ${/w}
 What about whisper? ${amazon:effect|name=whisper} this is a secret to everyone ${/amazon:effect}
 What about some DRC? ${amazon:effect|name=drc}This text has a higher pitch than normal.${/amazon:effect}
-What about some Vocal Tract Length? ${amazon:effect|vocal-tract-length=+10%}Yo.${/amazon:effect}"#.to_owned());
+What about some Vocal Tract Length? ${amazon:effect|vocal-tract-length=+10%}Yo.${/amazon:effect}
+What about some Phonation changing? ${amazon:effect|phonation=soft}Yo Yo Yo.${/amazon:effect}
+What about a basic auto breaths? ${amazon:auto-breaths}Dude bro${/amazon:auto-breaths}
+Now some more complex auto breaths. ${amazon:auto-breaths|volume=x-loud|frequency=x-high|duration=x-long}LALALA${/amazon:auto-breaths}
+We can even do manual breaths! ${amazon:breath}
+Or an even more complex breath! ${amazon:breath|volume=x-loud|duration=x-long}"#.to_owned());
   assert!(result.is_ok());
   assert_eq!(result.unwrap(), r#"<?xml version="1.0"?><speak xml:lang="en-US" onlangfailure="processorchoice" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Hello, My name is justin.
 I&apos;m going to stop talking for a bit. <break/> now even longer... <break strength="strong" time="4s"/>
@@ -44,5 +49,10 @@ What about a Sub? <sub alias="mercury"> hg </sub>
 What aboue a word role? <w role="amazon:VB"> test </w>
 What about whisper? <amazon:effect name="whispered"> this is a secret to everyone </amazon:effect>
 What about some DRC? <amazon:effect name="drc">This text has a higher pitch than normal.</amazon:effect>
-What about some Vocal Tract Length? <amazon:effect vocal-tract-length="+10%">Yo.</amazon:effect></speak>"#);
+What about some Vocal Tract Length? <amazon:effect vocal-tract-length="+10%">Yo.</amazon:effect>
+What about some Phonation changing? <amazon:effect phonation="soft">Yo Yo Yo.</amazon:effect>
+What about a basic auto breaths? <amazon:auto-breaths volume="default" frequency="default" duration="default">Dude bro</amazon:auto-breaths>
+Now some more complex auto breaths. <amazon:auto-breaths volume="x-loud" frequency="x-high" duration="x-long">LALALA</amazon:auto-breaths>
+We can even do manual breaths! <amazon:breath volume="default" duration="default"/>
+Or an even more complex breath! <amazon:breath volume="x-loud" duration="x-long"/></speak>"#);
 }

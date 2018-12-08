@@ -1,7 +1,9 @@
-use ::errors::*;
-use nom::{IResult, rest};
-use ::ssml_constants::*;
-use ::xml_writer::XmlWriter;
+use failure::{Error, err_msg};
+use nom::*;
+
+use crate::ssml_constants::*;
+use crate::xml_writer::XmlWriter;
+
 use std::str;
 use std::collections::BTreeMap;
 
@@ -23,15 +25,16 @@ pub struct OneItem {
   pub data: Option<String>,
 }
 
-named!(string<&str>,
-  alt!(map_res!(
-    take_until!("${"), str::from_utf8
-  ) | map_res!(
-    rest, str::from_utf8
-  ))
+named!(
+  string<&str>,
+  alt!(
+    map_res!(take_until!("${"), str::from_utf8) |
+    map_res!(rest, str::from_utf8)
+  )
 );
 
-named!(start_tag_info<StartTag>,
+named!(
+  start_tag_info<StartTag>,
   map!(
     do_parse!(
       tag!("${") >>
@@ -40,7 +43,7 @@ named!(start_tag_info<StartTag>,
       tag!("}") >>
       (key)
     ),
-    |key: (&str)| {
+    |key: &str| {
       if key.contains("|") {
         let mut as_split = key.split("|");
         let tag_key = as_split.next().unwrap().to_owned();
@@ -74,7 +77,8 @@ named!(start_tag_info<StartTag>,
   )
 );
 
-named!(end_tag_info<EndTag>,
+named!(
+  end_tag_info<EndTag>,
   map!(
     do_parse!(
       tag!("${/") >>
@@ -84,38 +88,44 @@ named!(end_tag_info<EndTag>,
     ),
     |key_name: &str| {
       EndTag {
-        tag_key: key_name.to_owned(),
+        tag_key: key_name.to_owned()
       }
     }
   )
 );
 
-named!(text_to_ssml_parser<Vec<OneItem>>,
-  complete!(
-    many1!(
-      alt!(
-        complete!(map!(start_tag_info, |start_tag| {
-          OneItem {
-            start_tag: Some(start_tag),
-            end_tag: None,
-            data: None,
-          }
-        })) | complete!(map!(end_tag_info, |end_tag| {
-          OneItem {
-            start_tag: None,
-            end_tag: Some(end_tag),
-            data: None,
-          }
-        })) | complete!(map!(string, |data: &str| {
-          OneItem {
-            start_tag: None,
-            end_tag: None,
-            data: Some(data.to_owned()),
-          }
-        }))
-      )
+named!(
+  text_to_ssml_parser<Vec<OneItem>>,
+  many1!(complete!(alt!(
+    map!(
+      start_tag_info,
+      |start_tag| {
+        OneItem {
+          start_tag: Some(start_tag),
+          end_tag: None,
+          data: None,
+        }
+      }
+    ) | map!(
+      end_tag_info,
+      |end_tag| {
+        OneItem {
+          start_tag: None,
+          end_tag: Some(end_tag),
+          data: None,
+        }
+      }
+    ) | map!(
+      string,
+      |strz| {
+        OneItem {
+          start_tag: None,
+          end_tag: None,
+          data: Some(strz.to_owned()),
+        }
+      }
     )
-  )
+  )))
 );
 
 /// Parses some text as SSML. It should note the error here allows for a lot of wiggle room.
@@ -125,19 +135,16 @@ named!(text_to_ssml_parser<Vec<OneItem>>,
 /// tag we'll still render it. All of these are invalid SSML, but don't trigger an error.
 /// This is meant to be that way as you can try anything with SSML, since polly doesn't fully
 /// follow the SSML v1.1 spec, now you can play around as much as you want.
-pub fn parse_as_ssml(data: String) -> Result<String> {
-  let initial_parse: IResult<&[u8], Vec<OneItem>> = text_to_ssml_parser(data.as_bytes());
-
-  if initial_parse.is_err() {
-    return Err(ErrorKind::NomResultError.into())
-  } else if initial_parse.is_incomplete() {
-    return Err(ErrorKind::NomIncompleteError.into())
+pub fn parse_as_ssml(data: String) -> Result<String, Error> {
+  let res = text_to_ssml_parser(data.as_bytes());
+  if res.is_err() {
+    println!("{:?}", res);
+    return Err(err_msg("Failed to parse text!"));
   }
+  let (_, parsed) = res.unwrap();
 
-  let (_, parsed) = initial_parse.unwrap();
-
-  let mut xml_writer = try!(XmlWriter::new());
-  try!(xml_writer.start_ssml_speak(None, None));
+  let mut xml_writer = XmlWriter::new()?;
+  xml_writer.start_ssml_speak(None, None)?;
 
   let _ = parsed.into_iter().inspect(|item| {
     if let Some(ref start_tag) = item.start_tag {
@@ -252,7 +259,9 @@ pub fn parse_as_ssml(data: String) -> Result<String> {
           }
         },
         PossibleOpenTags::AmazonEffect => {
-          if !start_tag.params.contains_key("name") && !start_tag.params.contains_key("vocal-tract-length") {
+          if !start_tag.params.contains_key("name") &&
+            !start_tag.params.contains_key("vocal-tract-length") &&
+            !start_tag.params.contains_key("phonation") {
             return;
           }
           if start_tag.params.contains_key("name") {
@@ -261,11 +270,40 @@ pub fn parse_as_ssml(data: String) -> Result<String> {
             if potentially_parsed.is_ok() {
               let _ = xml_writer.start_ssml_amazon_effect(potentially_parsed.unwrap());
             }
-          } else {
+          } else if start_tag.params.contains_key("vocal-tract-length") {
             let factor = start_tag.params.get("vocal-tract-length").unwrap();
             let _ = xml_writer.start_ssml_vocal_tract_length(factor.to_owned());
+          } else {
+            let potentially_parsed = start_tag.params.get("phonation").unwrap()
+              .parse::<PhonationVolume>();
+            if potentially_parsed.is_ok() {
+              let _ = xml_writer.start_ssml_phonation(potentially_parsed.unwrap());
+            }
           }
-        }
+        },
+        PossibleOpenTags::AmazonAutoBreaths => {
+          let volume = start_tag.params.get("volume").unwrap_or(&"".to_owned())
+            .parse::<BreathVolumes>();
+          let frequency = start_tag.params.get("frequency").unwrap_or(&"".to_owned())
+            .parse::<AutoBreathFrequency>();
+          let duration = start_tag.params.get("duration").unwrap_or(&"".to_owned())
+            .parse::<BreathDuration>();
+
+          if volume.is_ok() && frequency.is_ok() && duration.is_ok() {
+            let _ = xml_writer.start_ssml_auto_breaths(volume.unwrap(), frequency.unwrap(),
+              duration.unwrap());
+          }
+        },
+        PossibleOpenTags::AmazonBreath => {
+          let volume = start_tag.params.get("volume").unwrap_or(&"".to_owned())
+            .parse::<BreathVolumes>();
+          let duration = start_tag.params.get("duration").unwrap_or(&"".to_owned())
+            .parse::<BreathDuration>();
+
+          if volume.is_ok() && duration.is_ok() {
+            let _ = xml_writer.write_amazon_breath(volume.unwrap(), duration.unwrap());
+          }
+        },
       };
     };
 
@@ -286,7 +324,8 @@ pub fn parse_as_ssml(data: String) -> Result<String> {
         PossibleClosingTags::SayAs => xml_writer.end_ssml_say_as(),
         PossibleClosingTags::Sub => xml_writer.end_ssml_sub(),
         PossibleClosingTags::Word => xml_writer.end_ssml_w(),
-        PossibleClosingTags::AmazonEffect => xml_writer.end_ssml_amazon_effect()
+        PossibleClosingTags::AmazonEffect => xml_writer.end_ssml_amazon_effect(),
+        PossibleClosingTags::AmazonAutoBreaths => xml_writer.end_ssml_amazon_auto_breaths(),
       };
     };
 
@@ -295,7 +334,7 @@ pub fn parse_as_ssml(data: String) -> Result<String> {
     }
   }).count();
 
-  try!(xml_writer.end_ssml_speak());
+  xml_writer.end_ssml_speak()?;
 
   Ok(xml_writer.render())
 }
